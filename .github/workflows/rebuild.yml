@@ -1,0 +1,33 @@
+name: Bump wiki submodule
+
+on:
+  repository_dispatch:
+    types: [content-updated]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Update wiki-data to latest remote HEAD
+        run: git submodule update --remote src/content/wiki-data
+
+      - name: Commit and push if changed
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/content/wiki-data
+            git commit -m "chore: bump wiki submodule"
+            git push
+          else
+            echo "No submodule changes."
+          fi
