@@ -6,7 +6,7 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://wiki-site.pages.dev",
+  site: "https://wiki-site.yaj4012146.workers.dev",
   markdown: {
     gfm: true,
     rehypePlugins: [
