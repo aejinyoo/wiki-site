@@ -1,0 +1,89 @@
+---
+import {
+  getItemsByCategory,
+  slugLeaf,
+  type WikiItemEntry,
+} from "../lib/collections";
+import { CATEGORY_ORDER, categoryLabel } from "../lib/categories";
+
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+type Branch = { id: string; items: WikiItemEntry[] };
+const branches: Branch[] = await Promise.all(
+  CATEGORY_ORDER.map(async (id) => ({
+    id,
+    items: await getItemsByCategory(id),
+  })),
+);
+
+function isActive(href: string): boolean {
+  const h = href.replace(/\/$/, "") || "/";
+  return pathname === h;
+}
+---
+
+<nav class="wiki-sidebar" aria-label="문서 트리">
+  <a
+    href="/wiki"
+    class:list={["wiki-sidebar__root", isActive("/wiki") && "is-active"]}
+  >
+    wiki
+  </a>
+
+  <ul class="wiki-sidebar__tree">
+    {
+      branches.map(({ id, items }) => {
+        const categoryHref = `/wiki/${id}`;
+        const isInside =
+          pathname === categoryHref || pathname.startsWith(categoryHref + "/");
+        const isEmpty = items.length === 0;
+        return (
+          <li class="wiki-sidebar__branch">
+            <details open={isInside || !isEmpty}>
+              <summary>
+                <span class="wiki-sidebar__twisty" aria-hidden="true" />
+                <span class="wiki-sidebar__cat-label">
+                  {categoryLabel(id)}
+                </span>
+                <span class="wiki-sidebar__count">{items.length}</span>
+              </summary>
+              <ul class="wiki-sidebar__children">
+                <li>
+                  <a
+                    href={categoryHref}
+                    class:list={[
+                      "wiki-sidebar__link wiki-sidebar__link--all",
+                      isActive(categoryHref) && "is-active",
+                    ]}
+                  >
+                    전체 보기
+                  </a>
+                </li>
+                {isEmpty && (
+                  <li class="wiki-sidebar__empty">비어있음</li>
+                )}
+                {items.map((item) => {
+                  const href = `${categoryHref}/${slugLeaf(item.id)}`;
+                  return (
+                    <li>
+                      <a
+                        href={href}
+                        class:list={[
+                          "wiki-sidebar__link",
+                          isActive(href) && "is-active",
+                        ]}
+                        title={item.data.title}
+                      >
+                        {item.data.title}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>

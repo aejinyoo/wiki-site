@@ -1,0 +1,26 @@
+---
+import Card from "./Card.astro";
+import { categoryLabel, categoryDescription } from "../lib/categories";
+
+interface Props {
+  id: string;
+  count: number;
+}
+const { id, count } = Astro.props;
+---
+
+<Card href={`/wiki/${id}`}>
+  <div class="flex flex-col gap-2 min-h-[120px]">
+    <div class="flex items-start justify-between gap-3">
+      <h3 class="text-[17px] font-semibold tracking-tight text-(--color-text)">
+        {categoryLabel(id)}
+      </h3>
+      <span class="text-[12px] text-(--color-text-muted) shrink-0 mt-1">
+        {count}
+      </span>
+    </div>
+    <p class="text-[13px] leading-relaxed text-(--color-text-secondary)">
+      {categoryDescription(id)}
+    </p>
+  </div>
+</Card>

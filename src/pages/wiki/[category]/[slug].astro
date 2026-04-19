@@ -1,0 +1,122 @@
+---
+import { render } from "astro:content";
+import Wiki from "../../../layouts/Wiki.astro";
+import Chip from "../../../components/Chip.astro";
+import {
+  getWikiItems,
+  getItemsByCategory,
+  slugCategory,
+  slugLeaf,
+  type WikiItemEntry,
+} from "../../../lib/collections";
+import { categoryLabel, categoryDescription } from "../../../lib/categories";
+import { formatDateKorean } from "../../../lib/dates";
+
+export async function getStaticPaths() {
+  const items = await getWikiItems();
+  return items.map((entry) => ({
+    params: {
+      category: slugCategory(entry.id),
+      slug: slugLeaf(entry.id),
+    },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: WikiItemEntry };
+const { Content } = await render(entry);
+const category = slugCategory(entry.id);
+const siblings = await getItemsByCategory(category);
+const idx = siblings.findIndex((e) => e.id === entry.id);
+const prev = idx > 0 ? siblings[idx - 1] : null;
+const next = idx < siblings.length - 1 ? siblings[idx + 1] : null;
+const title = entry.data.title;
+const description = entry.data.summary_3lines || categoryDescription(category);
+---
+
+<Wiki title={title} description={description}>
+  <nav class="mb-6 flex items-center gap-3 text-[13px] text-(--color-text-secondary)">
+    <a href="/wiki" class="hover:text-(--color-accent)">wiki</a>
+    <span class="text-(--color-text-muted)">/</span>
+    <a href={`/wiki/${category}`} class="hover:text-(--color-accent)">
+      {categoryLabel(category)}
+    </a>
+  </nav>
+
+  <header class="mb-10 border-b border-(--color-border) pb-8">
+    <h1 class="text-[32px] md:text-[36px] font-semibold tracking-tight leading-tight text-(--color-text)">
+      {title}
+    </h1>
+    <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-(--color-text-secondary)">
+      <span>{entry.data.source}</span>
+      {entry.data.author && (
+        <>
+          <span class="text-(--color-text-muted)">·</span>
+          <span>{entry.data.author}</span>
+        </>
+      )}
+      {entry.data.captured_at && (
+        <>
+          <span class="text-(--color-text-muted)">·</span>
+          <time datetime={entry.data.captured_at}>
+            {formatDateKorean(entry.data.captured_at)}
+          </time>
+        </>
+      )}
+    </div>
+
+    {entry.data.summary_3lines && (
+      <div class="mt-6 rounded-[6px] border border-(--color-border) bg-(--color-bg-subtle) p-4">
+        <p class="text-[14px] leading-relaxed text-(--color-text) whitespace-pre-line">
+          {entry.data.summary_3lines}
+        </p>
+      </div>
+    )}
+  </header>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  <footer class="mt-12 border-t border-(--color-border) pt-8">
+    {entry.data.url && (
+      <a
+        href={entry.data.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 text-[14px] text-(--color-accent) hover:underline"
+      >
+        원본 보기 ↗
+      </a>
+    )}
+
+    {entry.data.tags && entry.data.tags.length > 0 && (
+      <div class="mt-6 flex flex-wrap gap-1.5">
+        {entry.data.tags.map((t) => (
+          <Chip href={`/tags/${t}`}>{t}</Chip>
+        ))}
+      </div>
+    )}
+
+    <nav class="mt-10 flex items-center justify-between gap-4 text-[13px]">
+      {prev ? (
+        <a
+          href={`/wiki/${category}/${slugLeaf(prev.id)}`}
+          class="max-w-[45%] text-left text-(--color-text-secondary) hover:text-(--color-accent)"
+        >
+          <div class="text-[12px] text-(--color-text-muted) mb-1">← 이전</div>
+          <div class="line-clamp-1">{prev.data.title}</div>
+        </a>
+      ) : <span />}
+      {next ? (
+        <a
+          href={`/wiki/${category}/${slugLeaf(next.id)}`}
+          class="max-w-[45%] text-right text-(--color-text-secondary) hover:text-(--color-accent)"
+        >
+          <div class="text-[12px] text-(--color-text-muted) mb-1">다음 →</div>
+          <div class="line-clamp-1">{next.data.title}</div>
+        </a>
+      ) : <span />}
+    </nav>
+  </footer>
+</Wiki>

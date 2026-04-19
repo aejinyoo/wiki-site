@@ -1,0 +1,36 @@
+---
+const pathname = Astro.url.pathname;
+const links: { href: string; label: string }[] = [
+  { href: "/daily", label: "daily" },
+  { href: "/wiki", label: "wiki" },
+  { href: "/search", label: "search" },
+];
+
+function isActive(href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href + "/");
+}
+---
+
+<nav class="sticky top-0 z-40 h-14 border-b border-(--color-border) bg-(--color-bg)/80 backdrop-blur">
+  <div class="mx-auto flex h-full max-w-[1080px] items-center justify-between px-5 md:px-8">
+    <a href="/" class="text-[15px] font-medium tracking-tight text-(--color-text) hover:text-(--color-accent)">
+      My Wiki
+    </a>
+    <div class="flex items-center gap-1 text-[14px]">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            "rounded-sm px-3 py-1.5 transition-colors",
+            isActive(link.href)
+              ? "text-(--color-text)"
+              : "text-(--color-text-secondary) hover:text-(--color-text) hover:bg-(--color-bg-subtle)",
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>

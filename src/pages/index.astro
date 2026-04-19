@@ -1,0 +1,87 @@
+---
+import Base from "../layouts/Base.astro";
+import DailyCard from "../components/DailyCard.astro";
+import CategoryCard from "../components/CategoryCard.astro";
+import {
+  getDailyEntries,
+  getCategoryCounts,
+  dateFromEntry,
+} from "../lib/collections";
+import { CATEGORY_ORDER } from "../lib/categories";
+import { todayInKst, formatDateKorean } from "../lib/dates";
+
+const dailies = await getDailyEntries();
+const today = todayInKst();
+const todayEntry = dailies.find((e) => dateFromEntry(e) === today);
+const featured = todayEntry ?? dailies[0];
+const recent = dailies
+  .filter((e) => dateFromEntry(e) !== (featured ? dateFromEntry(featured) : ""))
+  .slice(0, 7);
+const counts = await getCategoryCounts();
+
+const heroDate = featured ? formatDateKorean(dateFromEntry(featured)) : today;
+const showingToday = Boolean(todayEntry);
+---
+
+<Base title="My Wiki" description="매일 아침의 디자인 읽기" wide>
+  <header class="mb-12 md:mb-16">
+    <div class="text-[13px] text-(--color-text-muted) mb-2">{heroDate}</div>
+    <h1 class="text-[40px] md:text-[48px] font-semibold tracking-tight leading-[1.1] text-(--color-text)">
+      매일 아침의<br />디자인 읽기
+    </h1>
+  </header>
+
+  {featured ? (
+    <section class="mb-16">
+      {!showingToday && (
+        <p class="mb-3 text-[13px] text-(--color-text-secondary)">
+          오늘은 아직 없어요. 가장 최근 브리프를 보여드릴게요.
+        </p>
+      )}
+      <DailyCard entry={featured} large />
+    </section>
+  ) : (
+    <section class="mb-16">
+      <div class="rounded-[6px] border border-(--color-border) bg-(--color-bg-elevated) p-6">
+        <p class="text-[14px] text-(--color-text-secondary)">
+          아직 기록된 브리프가 없어요. 내일 다시 와주세요.
+        </p>
+      </div>
+    </section>
+  )}
+
+  {recent.length > 0 && (
+    <section class="mb-16">
+      <h2 class="mb-4 text-[14px] font-medium tracking-wide uppercase text-(--color-text-muted)">
+        최근 브리프
+      </h2>
+      <ul class="divide-y divide-(--color-border) border-y border-(--color-border)">
+        {recent.map((entry) => {
+          const d = dateFromEntry(entry);
+          return (
+            <li>
+              <a
+                href={`/daily/${d}`}
+                class="flex items-center justify-between gap-4 py-3 text-[14px] transition-colors hover:bg-(--color-bg-subtle) -mx-2 px-2 rounded-sm"
+              >
+                <span class="text-(--color-text)">{formatDateKorean(d)}</span>
+                <span class="text-(--color-text-muted) text-[12px]">→</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  <section class="mb-4">
+    <h2 class="mb-4 text-[14px] font-medium tracking-wide uppercase text-(--color-text-muted)">
+      Categories
+    </h2>
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {CATEGORY_ORDER.map((id) => (
+        <CategoryCard id={id} count={counts[id] ?? 0} />
+      ))}
+    </div>
+  </section>
+</Base>

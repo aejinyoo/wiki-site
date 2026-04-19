@@ -1,0 +1,28 @@
+---
+import Base from "../../layouts/Base.astro";
+import DailyCard from "../../components/DailyCard.astro";
+import { getDailyEntries } from "../../lib/collections";
+
+const entries = await getDailyEntries();
+---
+
+<Base title="daily" description="매일 아침의 디자인 브리프" wide>
+  <header class="mb-10">
+    <h1 class="text-[32px] font-semibold tracking-tight text-(--color-text)">daily</h1>
+    <p class="mt-2 text-[14px] text-(--color-text-secondary)">
+      매일 아침 07:30 KST 에 쌓이는 디자인 브리프
+    </p>
+  </header>
+
+  {entries.length === 0 ? (
+    <p class="text-(--color-text-secondary)">아직 기록된 브리프가 없어요.</p>
+  ) : (
+    <ul class="flex flex-col gap-3">
+      {entries.map((entry) => (
+        <li>
+          <DailyCard entry={entry} />
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

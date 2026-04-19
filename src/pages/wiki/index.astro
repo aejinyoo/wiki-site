@@ -1,0 +1,23 @@
+---
+import Wiki from "../../layouts/Wiki.astro";
+import CategoryCard from "../../components/CategoryCard.astro";
+import { getCategoryCounts } from "../../lib/collections";
+import { CATEGORY_ORDER } from "../../lib/categories";
+
+const counts = await getCategoryCounts();
+---
+
+<Wiki title="wiki" description="분류별로 정리된 디자인 아이템">
+  <header class="mb-10">
+    <h1 class="text-[32px] font-semibold tracking-tight text-(--color-text)">wiki</h1>
+    <p class="mt-2 text-[14px] text-(--color-text-secondary)">
+      카테고리로 훑어보기
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+    {CATEGORY_ORDER.map((id) => (
+      <CategoryCard id={id} count={counts[id] ?? 0} />
+    ))}
+  </div>
+</Wiki>

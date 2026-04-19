@@ -1,0 +1,31 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="404" description="이 페이지로 가는 길은 없어요">
+  <div class="py-16 md:py-24 text-center">
+    <div class="text-[13px] uppercase tracking-wider text-(--color-text-muted)">
+      404
+    </div>
+    <h1 class="mt-3 text-[40px] font-semibold tracking-tight text-(--color-text)">
+      이 페이지로 가는 길은 없어요
+    </h1>
+    <p class="mt-4 text-[15px] text-(--color-text-secondary)">
+      URL 을 잘못 적으셨거나, 옮겨진 걸지도 몰라요.
+    </p>
+    <div class="mt-10 flex items-center justify-center gap-3 text-[14px]">
+      <a
+        href="/"
+        class="rounded-[6px] border border-(--color-border-strong) bg-(--color-bg-elevated) px-4 py-2 text-(--color-text) transition-colors hover:border-(--color-accent) hover:text-(--color-accent)"
+      >
+        홈으로
+      </a>
+      <a
+        href="/search"
+        class="rounded-[6px] px-4 py-2 text-(--color-text-secondary) transition-colors hover:text-(--color-accent)"
+      >
+        검색
+      </a>
+    </div>
+  </div>
+</Base>

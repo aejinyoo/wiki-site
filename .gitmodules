@@ -1,0 +1,3 @@
+[submodule "src/content/wiki-data"]
+	path = src/content/wiki-data
+	url = https://github.com/aejinyoo/wiki

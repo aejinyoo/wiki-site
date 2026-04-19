@@ -1,0 +1,109 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import WikiSidebar from "../components/WikiSidebar.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const siteTitle = "My Wiki";
+const fullTitle = title === siteTitle ? title : `${title} · ${siteTitle}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+
+    <link
+      rel="preload"
+      href="/fonts/PretendardVariable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="min-h-screen bg-(--color-bg) text-(--color-text)">
+    <Nav />
+
+    <div class="wiki-shell mx-auto w-full max-w-[1280px] px-0 md:px-8">
+      <aside
+        id="wiki-drawer"
+        class="wiki-drawer"
+        data-open="false"
+        aria-label="문서 네비게이션"
+      >
+        <div class="wiki-drawer__inner">
+          <WikiSidebar />
+        </div>
+      </aside>
+
+      <div
+        id="wiki-scrim"
+        class="wiki-scrim"
+        aria-hidden="true"
+      ></div>
+
+      <main class="wiki-main">
+        <div class="wiki-main__content">
+          <slot />
+        </div>
+      </main>
+    </div>
+
+    <button
+      type="button"
+      id="wiki-drawer-toggle"
+      class="wiki-drawer__toggle md:hidden"
+      aria-controls="wiki-drawer"
+      aria-expanded="false"
+    >
+      <span class="wiki-drawer__toggle-icon" aria-hidden="true">≡</span>
+      <span>문서</span>
+    </button>
+
+    <Footer />
+
+    <script>
+      const toggle = document.getElementById("wiki-drawer-toggle");
+      const drawer = document.getElementById("wiki-drawer");
+      const scrim = document.getElementById("wiki-scrim");
+
+      function setOpen(open: boolean) {
+        if (!drawer || !toggle || !scrim) return;
+        drawer.dataset.open = String(open);
+        toggle.setAttribute("aria-expanded", String(open));
+        scrim.dataset.open = String(open);
+        document.body.style.overflow = open ? "hidden" : "";
+      }
+
+      toggle?.addEventListener("click", () => {
+        setOpen(drawer?.dataset.open !== "true");
+      });
+      scrim?.addEventListener("click", () => setOpen(false));
+
+      // Close drawer when navigating to a new link on mobile.
+      drawer?.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "A") setOpen(false);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && drawer?.dataset.open === "true") setOpen(false);
+      });
+    </script>
+  </body>
+</html>

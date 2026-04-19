@@ -1,0 +1,62 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getDailyEntries, dateFromEntry } from "../../lib/collections";
+import { renderDailyMarkdown } from "../../lib/daily-content";
+import { formatDateKorean } from "../../lib/dates";
+
+export async function getStaticPaths() {
+  const entries = await getDailyEntries();
+  return entries.map((entry) => ({
+    params: { date: dateFromEntry(entry) },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as {
+  entry: Awaited<ReturnType<typeof getDailyEntries>>[number];
+};
+const all = await getDailyEntries();
+const idx = all.findIndex((e) => dateFromEntry(e) === dateFromEntry(entry));
+// all is newest-first, so "previous in time" is at idx+1
+const prev = idx < all.length - 1 ? all[idx + 1] : null;
+const next = idx > 0 ? all[idx - 1] : null;
+
+const date = dateFromEntry(entry);
+const html = renderDailyMarkdown(entry.body ?? "");
+const description = `${formatDateKorean(date)} 디자인 브리프`;
+---
+
+<Base title={`${date} 브리프`} description={description}>
+  <nav class="mb-6 flex items-center justify-between text-[13px]">
+    <a href="/daily" class="text-(--color-text-secondary) hover:text-(--color-accent)">
+      ← 전체 브리프
+    </a>
+    <div class="flex items-center gap-4 text-(--color-text-secondary)">
+      {prev ? (
+        <a href={`/daily/${dateFromEntry(prev)}`} class="hover:text-(--color-accent)">
+          ← {dateFromEntry(prev)}
+        </a>
+      ) : (
+        <span class="text-(--color-text-muted)">← 이전 없음</span>
+      )}
+      {next ? (
+        <a href={`/daily/${dateFromEntry(next)}`} class="hover:text-(--color-accent)">
+          {dateFromEntry(next)} →
+        </a>
+      ) : (
+        <span class="text-(--color-text-muted)">다음 없음 →</span>
+      )}
+    </div>
+  </nav>
+
+  <header class="mb-10 border-b border-(--color-border) pb-8">
+    <div class="text-[13px] uppercase tracking-wider text-(--color-text-muted)">
+      Daily brief
+    </div>
+    <h1 class="mt-2 text-[36px] md:text-[40px] font-semibold tracking-tight leading-tight text-(--color-text)">
+      {formatDateKorean(date)}
+    </h1>
+  </header>
+
+  <article class="prose" set:html={html} />
+</Base>

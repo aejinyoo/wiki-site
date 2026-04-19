@@ -1,0 +1,179 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="검색" description="My Wiki 전체 검색">
+  <header class="mb-8">
+    <h1 class="text-[28px] font-semibold tracking-tight text-(--color-text)">검색</h1>
+  </header>
+
+  <form id="search-form" class="mb-8" role="search" autocomplete="off">
+    <input
+      id="search-input"
+      type="search"
+      name="q"
+      placeholder="제목·태그·본문으로 찾기"
+      autofocus
+      class="w-full rounded-[8px] border border-(--color-border-strong) bg-(--color-bg-elevated) px-5 py-3.5 text-[17px] text-(--color-text) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none"
+    />
+  </form>
+
+  <p id="search-meta" class="mb-6 text-[13px] text-(--color-text-muted)">
+    인덱스를 불러오는 중…
+  </p>
+
+  <ul id="search-results" class="flex flex-col gap-4"></ul>
+
+  <div id="search-empty" class="hidden rounded-[6px] border border-(--color-border) bg-(--color-bg-elevated) p-8 text-center">
+    <p class="text-[14px] text-(--color-text-secondary)">
+      아직 이런 주제는 모아두지 않았어요
+    </p>
+    <p class="mt-3 text-[12px] text-(--color-text-muted)">
+      다른 단어로 찾아보거나, <a href="/wiki" class="text-(--color-accent) hover:underline">카테고리</a>로 탐색해볼래요?
+    </p>
+  </div>
+
+  <script>
+    import Fuse from "fuse.js";
+
+    type IndexEntry = {
+      type: "daily" | "wiki";
+      href: string;
+      title: string;
+      summary: string;
+      category: string;
+      tags: string[];
+      body: string;
+      date: string;
+    };
+
+    const input = document.getElementById("search-input") as HTMLInputElement;
+    const form = document.getElementById("search-form") as HTMLFormElement;
+    const meta = document.getElementById("search-meta")!;
+    const results = document.getElementById("search-results")!;
+    const empty = document.getElementById("search-empty")!;
+
+    let fuse: Fuse<IndexEntry> | null = null;
+    let all: IndexEntry[] = [];
+
+    async function loadIndex() {
+      try {
+        const res = await fetch("/search-index.json");
+        all = await res.json();
+        fuse = new Fuse(all, {
+          keys: [
+            { name: "title", weight: 3 },
+            { name: "tags", weight: 2 },
+            { name: "summary", weight: 1.5 },
+            { name: "category", weight: 1 },
+            { name: "body", weight: 0.8 },
+          ],
+          threshold: 0.35,
+          ignoreLocation: true,
+          includeScore: false,
+          minMatchCharLength: 2,
+        });
+        meta.textContent = `${all.length}개 문서에서 찾기`;
+        handleQuery(new URL(location.href).searchParams.get("q") ?? "");
+      } catch (err) {
+        meta.textContent = "인덱스를 불러오지 못했어요";
+        console.error(err);
+      }
+    }
+
+    function escape(s: string): string {
+      return s.replace(/[&<>"']/g, (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]!,
+      );
+    }
+
+    function highlight(text: string, query: string): string {
+      if (!query) return escape(text);
+      const q = query.trim();
+      if (!q) return escape(text);
+      const safe = escape(text);
+      const pattern = new RegExp(
+        q.split(/\s+/).filter(Boolean).map((t) =>
+          t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        ).join("|"),
+        "gi",
+      );
+      return safe.replace(pattern, (m) => `<mark class="search-mark">${m}</mark>`);
+    }
+
+    function render(entries: IndexEntry[], query: string) {
+      results.innerHTML = entries
+        .map((e) => {
+          const chips: string[] = [];
+          chips.push(
+            `<span class="search-chip">${escape(e.category)}</span>`,
+          );
+          if (e.date) {
+            chips.push(`<span class="search-meta">${e.date}</span>`);
+          }
+          const tagsHtml = e.tags
+            .slice(0, 3)
+            .map((t) => `<span class="search-chip">${escape(t)}</span>`)
+            .join("");
+          return `
+            <li>
+              <a href="${e.href}" class="search-card">
+                <div class="search-card__meta">${chips.join(" · ")}</div>
+                <h3 class="search-card__title">${highlight(e.title, query)}</h3>
+                ${e.summary ? `<p class="search-card__summary">${highlight(e.summary, query)}</p>` : ""}
+                ${tagsHtml ? `<div class="search-card__tags">${tagsHtml}</div>` : ""}
+              </a>
+            </li>`;
+        })
+        .join("");
+    }
+
+    function handleQuery(q: string) {
+      input.value = q;
+      if (!fuse) return;
+      const trimmed = q.trim();
+      if (!trimmed) {
+        results.innerHTML = "";
+        empty.classList.add("hidden");
+        meta.textContent = `${all.length}개 문서에서 찾기`;
+        return;
+      }
+      const hits = fuse.search(trimmed).slice(0, 40).map((h) => h.item);
+      if (hits.length === 0) {
+        results.innerHTML = "";
+        empty.classList.remove("hidden");
+        meta.textContent = "결과 없음";
+      } else {
+        empty.classList.add("hidden");
+        meta.textContent = `${hits.length}개 찾음`;
+        render(hits, trimmed);
+      }
+    }
+
+    let debounce: number | null = null;
+    input?.addEventListener("input", () => {
+      const q = input.value;
+      if (debounce) window.clearTimeout(debounce);
+      debounce = window.setTimeout(() => {
+        handleQuery(q);
+        const url = new URL(location.href);
+        if (q) url.searchParams.set("q", q);
+        else url.searchParams.delete("q");
+        history.replaceState(null, "", url);
+      }, 120);
+    });
+
+    form?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      handleQuery(input.value);
+    });
+
+    loadIndex();
+  </script>
+</Base>

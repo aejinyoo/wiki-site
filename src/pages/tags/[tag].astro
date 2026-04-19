@@ -1,0 +1,46 @@
+---
+import Base from "../../layouts/Base.astro";
+import ItemCard from "../../components/ItemCard.astro";
+import { getWikiItems, getItemsByTag } from "../../lib/collections";
+
+export async function getStaticPaths() {
+  const items = await getWikiItems();
+  const tagSet = new Set<string>();
+  for (const item of items) {
+    for (const tag of item.data.tags ?? []) tagSet.add(tag);
+  }
+  return Array.from(tagSet).map((tag) => ({
+    params: { tag },
+  }));
+}
+
+const { tag } = Astro.params;
+const items = await getItemsByTag(tag!);
+const description = `#${tag} 태그가 달린 아이템 ${items.length}개`;
+---
+
+<Base title={`#${tag}`} description={description} wide>
+  <header class="mb-10">
+    <div class="text-[13px] uppercase tracking-wider text-(--color-text-muted)">
+      Tag
+    </div>
+    <h1 class="mt-2 text-[36px] font-semibold tracking-tight text-(--color-text)">
+      #{tag}
+    </h1>
+    <p class="mt-3 text-[13px] text-(--color-text-muted)">
+      아이템 {items.length}개
+    </p>
+  </header>
+
+  {items.length === 0 ? (
+    <p class="text-(--color-text-secondary)">이 태그로 묶인 아이템이 없어요.</p>
+  ) : (
+    <ul class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {items.map((entry) => (
+        <li>
+          <ItemCard entry={entry} showCategory />
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

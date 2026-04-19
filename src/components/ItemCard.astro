@@ -1,0 +1,55 @@
+---
+import type { WikiItemEntry } from "../lib/collections";
+import { slugCategory, slugLeaf } from "../lib/collections";
+import { categoryLabel } from "../lib/categories";
+import Card from "./Card.astro";
+import Chip from "./Chip.astro";
+import { formatDateShort } from "../lib/dates";
+
+interface Props {
+  entry: WikiItemEntry;
+  showCategory?: boolean;
+}
+const { entry, showCategory = false } = Astro.props;
+const category = slugCategory(entry.id);
+const slug = slugLeaf(entry.id);
+const href = `/wiki/${category}/${slug}`;
+const tags = (entry.data.tags ?? []).slice(0, 4);
+---
+
+<Card href={href}>
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center gap-2 text-[12px] text-(--color-text-muted)">
+      {showCategory && (
+        <>
+          <span>{categoryLabel(category)}</span>
+          <span>·</span>
+        </>
+      )}
+      <span>{entry.data.source}</span>
+      {entry.data.captured_at && (
+        <>
+          <span>·</span>
+          <time datetime={entry.data.captured_at}>
+            {formatDateShort(entry.data.captured_at)}
+          </time>
+        </>
+      )}
+    </div>
+    <h3 class="text-[18px] font-semibold leading-snug tracking-tight text-(--color-text)">
+      {entry.data.title}
+    </h3>
+    {entry.data.summary_3lines && (
+      <p class="text-[14px] leading-relaxed text-(--color-text-secondary) line-clamp-3 whitespace-pre-line">
+        {entry.data.summary_3lines}
+      </p>
+    )}
+    {tags.length > 0 && (
+      <div class="flex flex-wrap gap-1.5 pt-1">
+        {tags.map((t) => (
+          <Chip>{t}</Chip>
+        ))}
+      </div>
+    )}
+  </div>
+</Card>

@@ -1,0 +1,64 @@
+---
+import Wiki from "../../../layouts/Wiki.astro";
+import ItemCard from "../../../components/ItemCard.astro";
+import {
+  getItemsByCategory,
+  type WikiItemEntry,
+} from "../../../lib/collections";
+import {
+  CATEGORY_ORDER,
+  categoryLabel,
+  categoryDescription,
+} from "../../../lib/categories";
+
+export async function getStaticPaths() {
+  return CATEGORY_ORDER.map((category) => ({
+    params: { category },
+  }));
+}
+
+const { category } = Astro.params;
+const items: WikiItemEntry[] = await getItemsByCategory(category!);
+---
+
+<Wiki
+  title={categoryLabel(category!)}
+  description={categoryDescription(category!)}
+>
+  <header class="mb-10">
+    <div class="text-[13px] uppercase tracking-wider text-(--color-text-muted)">
+      Category
+    </div>
+    <h1 class="mt-2 text-[36px] font-semibold tracking-tight text-(--color-text)">
+      {categoryLabel(category!)}
+    </h1>
+    <p class="mt-3 text-[15px] text-(--color-text-secondary)">
+      {categoryDescription(category!)}
+    </p>
+    <p class="mt-4 text-[13px] text-(--color-text-muted)">
+      아이템 {items.length}개
+    </p>
+  </header>
+
+  {items.length === 0 ? (
+    <div class="rounded-[6px] border border-(--color-border) bg-(--color-bg-elevated) p-8 text-center">
+      <p class="text-[14px] text-(--color-text-secondary)">
+        이 카테고리는 아직 비어있어요
+      </p>
+      <a
+        href="/wiki"
+        class="mt-3 inline-block text-[13px] text-(--color-accent) hover:underline"
+      >
+        다른 카테고리 보기 →
+      </a>
+    </div>
+  ) : (
+    <ul class="grid grid-cols-1 gap-4">
+      {items.map((entry) => (
+        <li>
+          <ItemCard entry={entry} />
+        </li>
+      ))}
+    </ul>
+  )}
+</Wiki>
