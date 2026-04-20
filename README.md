@@ -2,6 +2,16 @@
 
 `aejinyoo/wiki` 의 데일리 브리프 + 위키 아이템을 렌더하는 정적 사이트. Astro + Tailwind v4.
 
+## 레포 구성
+
+| 레포 | 역할 |
+|---|---|
+| [aejinyoo/wiki](https://github.com/aejinyoo/wiki) | 처리된 문서 산출물 저장소 (데이터 레이어, submodule로 포함) |
+| [aejinyoo/wiki-agent](https://github.com/aejinyoo/wiki-agent) | 수집·분류·큐레이션 로직 (로직 레이어) |
+| **aejinyoo/wiki-site** (이 레포) | 위키 결과물·데일리 브리프 웹사이트 (뷰 레이어) |
+
+데이터 흐름: iOS Shortcut → wiki Issues → wiki-agent Actions → **wiki 파일 커밋** → **이 repo submodule 업데이트 → Cloudflare Pages 배포**
+
 ## 개발
 
 ```sh
