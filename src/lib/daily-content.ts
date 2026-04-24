@@ -39,6 +39,13 @@ export function renderDailyMarkdown(body: string): string {
   return marked.parse(clean(body), { async: false }) as string;
 }
 
+// True when the brief body (after cleaning) has no visible content —
+// e.g. upstream generation failed and the file is empty or whitespace-only.
+export function isDailyBodyEmpty(body: string | undefined | null): boolean {
+  if (!body) return true;
+  return clean(body).trim() === "";
+}
+
 // Extract the first 3 non-empty, non-heading lines as a preview.
 export function briefPreview(body: string, maxLines = 3): string {
   const lines = clean(body)

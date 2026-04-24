@@ -1,8 +1,8 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { getDailyEntries, dateFromEntry } from "../../lib/collections";
-import { renderDailyMarkdown } from "../../lib/daily-content";
-import { formatDateKorean } from "../../lib/dates";
+import { renderDailyMarkdown, isDailyBodyEmpty } from "../../lib/daily-content";
+import { formatDateKorean, shiftDate } from "../../lib/dates";
 
 export async function getStaticPaths() {
   const entries = await getDailyEntries();
@@ -22,7 +22,9 @@ const prev = idx < all.length - 1 ? all[idx + 1] : null;
 const next = idx > 0 ? all[idx - 1] : null;
 
 const date = dateFromEntry(entry);
-const html = renderDailyMarkdown(entry.body ?? "");
+const isEmpty = isDailyBodyEmpty(entry.body);
+const html = isEmpty ? "" : renderDailyMarkdown(entry.body ?? "");
+const prevDay = shiftDate(date, -1);
 const description = `${formatDateKorean(date)} 디자인 브리프`;
 ---
 
@@ -58,5 +60,26 @@ const description = `${formatDateKorean(date)} 디자인 브리프`;
     </h1>
   </header>
 
-  <article class="prose" set:html={html} />
+  {isEmpty ? (
+    <div
+      role="status"
+      class="rounded border border-(--color-border) bg-(--color-bg-subtle) p-6 text-[14px] leading-relaxed text-(--color-text-secondary)"
+    >
+      <p class="font-medium text-(--color-text)">브리프 생성이 누락되었거나 실패했어요.</p>
+      <p class="mt-2">
+        {prevDay ? (
+          <>
+            전날 브리프를 참고하세요 →{" "}
+            <a href={`/daily/${prevDay}`} class="text-(--color-accent) hover:text-(--color-accent-hover)">
+              {prevDay}
+            </a>
+          </>
+        ) : (
+          <span>전날 브리프를 찾을 수 없습니다.</span>
+        )}
+      </p>
+    </div>
+  ) : (
+    <article class="prose" set:html={html} />
+  )}
 </Base>
