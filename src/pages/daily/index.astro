@@ -1,9 +1,15 @@
 ---
 import Base from "../../layouts/Base.astro";
 import DailyCard from "../../components/DailyCard.astro";
+import Pagination from "../../components/Pagination.astro";
 import { getDailyEntries } from "../../lib/collections";
 
-const entries = await getDailyEntries();
+const PAGE_SIZE = 20;
+const all = await getDailyEntries();
+const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+const entries = all.slice(0, PAGE_SIZE);
+const showPagination = all.length > PAGE_SIZE;
+const nextHref = totalPages > 1 ? "/daily/page/2" : null;
 ---
 
 <Base title="daily" description="매일 아침의 디자인 브리프" wide>
@@ -24,5 +30,14 @@ const entries = await getDailyEntries();
         </li>
       ))}
     </ul>
+  )}
+
+  {showPagination && (
+    <Pagination
+      pageNum={1}
+      totalPages={totalPages}
+      prevHref={null}
+      nextHref={nextHref}
+    />
   )}
 </Base>

@@ -1,0 +1,57 @@
+---
+import Base from "../../../layouts/Base.astro";
+import DailyCard from "../../../components/DailyCard.astro";
+import Pagination from "../../../components/Pagination.astro";
+import { getDailyEntries, type DailyEntry } from "../../../lib/collections";
+
+export async function getStaticPaths() {
+  const PAGE_SIZE = 20;
+  const all = await getDailyEntries();
+  const totalPages = Math.ceil(all.length / PAGE_SIZE);
+  const paths = [];
+  for (let i = 2; i <= totalPages; i++) {
+    paths.push({
+      params: { page: String(i) },
+      props: {
+        entries: all.slice((i - 1) * PAGE_SIZE, i * PAGE_SIZE),
+        pageNum: i,
+        totalPages,
+      },
+    });
+  }
+  return paths;
+}
+
+interface Props {
+  entries: DailyEntry[];
+  pageNum: number;
+  totalPages: number;
+}
+const { entries, pageNum, totalPages } = Astro.props as Props;
+const prevHref = pageNum === 2 ? "/daily" : `/daily/page/${pageNum - 1}`;
+const nextHref = pageNum < totalPages ? `/daily/page/${pageNum + 1}` : null;
+---
+
+<Base title={`daily — ${pageNum}페이지`} description="매일 아침의 디자인 브리프" wide>
+  <header class="mb-10">
+    <h1 class="text-[32px] font-semibold tracking-tight text-(--color-text)">daily</h1>
+    <p class="mt-2 text-[14px] text-(--color-text-secondary)">
+      매일 아침 07:30 KST 에 쌓이는 디자인 브리프
+    </p>
+  </header>
+
+  <ul class="flex flex-col gap-3">
+    {entries.map((entry) => (
+      <li>
+        <DailyCard entry={entry} />
+      </li>
+    ))}
+  </ul>
+
+  <Pagination
+    pageNum={pageNum}
+    totalPages={totalPages}
+    prevHref={prevHref}
+    nextHref={nextHref}
+  />
+</Base>

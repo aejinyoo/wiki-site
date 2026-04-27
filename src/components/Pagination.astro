@@ -1,0 +1,27 @@
+---
+interface Props {
+  pageNum: number;
+  totalPages: number;
+  prevHref: string | null;
+  nextHref: string | null;
+}
+const { pageNum, totalPages, prevHref, nextHref } = Astro.props;
+---
+
+<nav class="mt-8 flex items-center justify-between gap-4 text-[13px]" aria-label="페이지 이동">
+  {prevHref ? (
+    <a href={prevHref} class="text-(--color-text-secondary) hover:text-(--color-accent)">
+      ← 이전
+    </a>
+  ) : (
+    <span class="text-(--color-text-muted)">← 이전</span>
+  )}
+  <span class="text-(--color-text-muted)">{totalPages}페이지 중 {pageNum}</span>
+  {nextHref ? (
+    <a href={nextHref} class="text-(--color-text-secondary) hover:text-(--color-accent)">
+      다음 →
+    </a>
+  ) : (
+    <span class="text-(--color-text-muted)">다음 →</span>
+  )}
+</nav>
