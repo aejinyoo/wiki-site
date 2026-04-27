@@ -1,13 +1,13 @@
 ---
 import Base from "../layouts/Base.astro";
 import DailyCard from "../components/DailyCard.astro";
-import CategoryCard from "../components/CategoryCard.astro";
+import Chip from "../components/Chip.astro";
 import {
   getDailyEntries,
   getCategoryCounts,
   dateFromEntry,
 } from "../lib/collections";
-import { CATEGORY_ORDER } from "../lib/categories";
+import { CATEGORY_ORDER, categoryLabel } from "../lib/categories";
 import { todayInKst, formatDateKorean } from "../lib/dates";
 
 const dailies = await getDailyEntries();
@@ -39,6 +39,14 @@ const showingToday = Boolean(todayEntry);
         </p>
       )}
       <DailyCard entry={featured} large />
+      <div class="mt-4 flex flex-wrap gap-2">
+        {CATEGORY_ORDER.map((id) => (
+          <Chip href={`/wiki/${id}`}>
+            {categoryLabel(id)}
+            <span class="ml-1.5 text-(--color-text-muted)">{counts[id] ?? 0}</span>
+          </Chip>
+        ))}
+      </div>
     </section>
   ) : (
     <section class="mb-16">
@@ -82,14 +90,4 @@ const showingToday = Boolean(todayEntry);
     </section>
   )}
 
-  <section class="mb-4">
-    <h2 class="mb-4 text-[14px] font-medium tracking-wide uppercase text-(--color-text-muted)">
-      Categories
-    </h2>
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-      {CATEGORY_ORDER.map((id) => (
-        <CategoryCard id={id} count={counts[id] ?? 0} />
-      ))}
-    </div>
-  </section>
 </Base>
