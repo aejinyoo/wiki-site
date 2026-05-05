@@ -4,9 +4,12 @@ import tailwindcss from "@tailwindcss/vite";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
+import cloudflare from "@astrojs/cloudflare";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://wiki-site.yaj4012146.workers.dev",
+
   markdown: {
     gfm: true,
     rehypePlugins: [
@@ -24,7 +27,10 @@ export default defineConfig({
       wrap: true,
     },
   },
+
   vite: {
     plugins: [tailwindcss()],
   },
+
+  adapter: cloudflare(),
 });
