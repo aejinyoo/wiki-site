@@ -3,28 +3,25 @@
 
 export type CategoryId =
   | "ai-ux-patterns"
-  | "prompt-ui"
-  | "agent-interaction"
   | "generative-tools"
   | "design-system-automation"
-  | "trend-reports";
+  | "trend-reports"
+  | "lifestyle-recipe";
 
 export const CATEGORY_DESCRIPTIONS: Record<CategoryId, string> = {
-  "ai-ux-patterns": "AI 제품에서 반복 관찰되는 UX 패턴들",
-  "prompt-ui": "프롬프트 입력·편집·관리 인터페이스",
-  "agent-interaction": "에이전트와 대화·개입·감독 UI",
+  "ai-ux-patterns": "AI 제품에서 반복 관찰되는 UX 패턴 · 프롬프트 UI · 에이전트 상호작용",
   "generative-tools": "생성형 제작 도구의 디자인 언어",
   "design-system-automation": "디자인 시스템 자동화 · AI 인퍼런스",
   "trend-reports": "리포트·아티클·시장 동향",
+  "lifestyle-recipe": "요리·레시피·뷰티·라이프스타일",
 };
 
 export const CATEGORY_ORDER: CategoryId[] = [
   "ai-ux-patterns",
-  "prompt-ui",
-  "agent-interaction",
   "generative-tools",
   "design-system-automation",
   "trend-reports",
+  "lifestyle-recipe",
 ];
 
 export function categoryLabel(id: string): string {
